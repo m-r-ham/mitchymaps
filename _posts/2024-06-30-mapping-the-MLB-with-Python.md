@@ -80,6 +80,7 @@ output_csv_file_path = '~/mlb_stadiums_geocoded.csv'
 df.to_csv(output_csv_file_path, index=False)
 
 print(f"Geocoded addresses saved to {output_csv_file_path}")
+```
 </details>
 
 Usually, I use Nominatim for geocoding addresses in Python but I kept getting a 403 error code regardless of what I used for my parameters, so I switched to Photon for this analysis. There are many ways to geocode addresses, most of them free in small batches. My favorites are Nominatim through geopy and the [`Census Geocoder`](#https://www.census.gov/programs-surveys/geography/technical-documentation/complete-technical-documentation/census-geocoder.html) batch processing tool. The Google Maps and Mapbox APIs are quite robust but also can be expensive. 
@@ -89,7 +90,7 @@ It's also important to note that the input data quality affects geocoding succes
 Once the stadium addresses are geocoded, we can add move on to mapping. This involves importing a few libraries, including folium for the map and os & base64 to be able to use SVG images of team logos as the markers on the map.
 
 <details>
-    <summary>Click to expand code</summary>
+<summary>Click to expand code</summary>
 
 ```python
 import folium
