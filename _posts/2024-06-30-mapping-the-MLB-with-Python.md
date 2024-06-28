@@ -140,7 +140,6 @@ We ended up with a simple map of MLB stadiums (the overlap of some teams is not 
 
 <iframe src="https://m-r-ham.github.io/mitchymaps.github.io/projects/mlb-analysis/outputs/mlb_ballparks_map.html" width="100%" height="600px"></iframe>
 
-
 This is nice, but it doesn't tell us anything. Proximity analysis can help us understand the population's access to MLB stadiums.
 
 ### Proximity analysis
