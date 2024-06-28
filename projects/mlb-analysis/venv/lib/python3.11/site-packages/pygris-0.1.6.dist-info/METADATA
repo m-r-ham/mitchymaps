@@ -1,0 +1,57 @@
+Metadata-Version: 2.1
+Name: pygris
+Version: 0.1.6
+Summary: Download and use US Census Bureau TIGER/Line Shapefiles and other data resources in Python
+Author-email: Kyle Walker <kyle@walker-data.com>
+License: MIT
+Project-URL: Homepage, https://github.com/walkerke/pygris
+Project-URL: Bug Tracker, https://github.com/walkerke/pygris/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: geopandas (>=0.9)
+Requires-Dist: fiona
+Requires-Dist: pandas
+Requires-Dist: shapely
+Requires-Dist: requests
+Requires-Dist: appdirs
+Requires-Dist: pip
+Requires-Dist: numpy
+Requires-Dist: rtree
+Provides-Extra: explore
+Requires-Dist: mapclassify ; extra == 'explore'
+Requires-Dist: ipyleaflet ; extra == 'explore'
+Requires-Dist: folium ; extra == 'explore'
+
+## pygris
+
+__pygris__ is a Python package to help users access US Census Bureau TIGER/Line and cartographic boundary shapefiles and load them into Python as GeoDataFrames.  The goal of the package is to make it simple to access US Census geographic data; data can be acquired with a single function for a given geography (e.g. `tracts()` for Census tracts) along with a few options.  
+
+The package is a general port of the [R __tigris__ package](https://github.com/walkerke/tigris) with a few modifications.  The framework of and philosophy behind the __tigris__ package is covered in [Chapter 5 of my book, _Analyzing US Census Data: Methods, Maps and Models in R_](https://walker-data.com/census-r/census-geographic-data-and-applications-in-r.html).  
+
+Install __pygris__ from PyPI with the following command:
+
+```bash
+pip install pygris
+
+# For optional dependencies to support interactive examples in the documentation:
+# pip install pygris[explore]
+```
+
+Alternatively, install the development version from GitHub:
+
+```bash
+pip install git+https://github.com/walkerke/pygris.git
+```
+
+Support for installation with `conda` is forthcoming.
+
+Read the following articles for more information on how to use the package:
+
+* [Basic usage of pygris](https://walker-data.com/pygris/01-basic-usage)
+* [Working with geometries in pygris](https://walker-data.com/pygris/02-geometries)
+* [Data utilities in pygris](https://walker-data.com/pygris/03-data-utilities)
+* [Geocoding and custom filters in pygris](https://walker-data.com/pygris/04-geocoding)
