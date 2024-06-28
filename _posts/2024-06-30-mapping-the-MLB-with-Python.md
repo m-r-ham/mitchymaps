@@ -133,6 +133,7 @@ We ended up with a simple map of MLB stadiums (the overlap of some teams is not 
 
 <iframe src="/projects/mlb-analysis/outputs/mlb_ballparks_map.html" width="100%" height="600px"></iframe>
 
+
 ### Proximity analysis
 MLB stadiums are located in diverse areas of their cities, so I wanted to understand the areas that are near MLB stadiums. To do this, we had to have some locations to compare against the MLB stadiums. I used Census tracts as my geographic areas because they’re small and have a lot of available Census data attached to them. Census tracts are small geographic areas with 1,200-8,000 people. They're great for geospatial & demographic analysis because they're much more comparable to each other in terms of population size than other geographic areas like ZIP codes and counties.
 
@@ -554,7 +555,7 @@ Unfortunately, I forgot to create a population _density_ variable before making 
 
 I used similar code to the above to pull in the Census tracts, MLB stadiums, and Census demographic data within 20 miles of each MLB stadium (for consistency). I mapped each area using a logarithmic scale to account for the dramatic differences in population within the tracts (e.g., Kansas City vs. New York City).
 
-
+![Population density around Yankee Stadium](https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/logarithmic_population_density_New_York_Yankees.png)
 
 ### Correlation between demographics and attendance
 
