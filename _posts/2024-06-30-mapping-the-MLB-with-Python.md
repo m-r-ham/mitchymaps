@@ -30,7 +30,7 @@ First, I copied MLB stadium names & addresses from [`MLB`](#https://www.mlb.com/
 Then, I geocoded the MLB ballparks using the Photon geocoder within geopy. Geocoding is the process of converting addresses, place names, or other location-based data into geographic coordinates (latitude and longitude). Geocoding is an important part of geospatial analytics for many reasons but particularly for mapping and integrating with other geographic data.
 
 <details>
-    <summary>Click to expand code</summary>
+<summary>Click to expand code</summary>
 
 ```python
 import pandas as pd
@@ -81,7 +81,6 @@ df.to_csv(output_csv_file_path, index=False)
 
 print(f"Geocoded addresses saved to {output_csv_file_path}")
 </details>
-```
 
 Usually, I use Nominatim for geocoding addresses in Python but I kept getting a 403 error code regardless of what I used for my parameters, so I switched to Photon for this analysis. There are many ways to geocode addresses, most of them free in small batches. My favorites are Nominatim through geopy and the [`Census Geocoder`](#https://www.census.gov/programs-surveys/geography/technical-documentation/complete-technical-documentation/census-geocoder.html) batch processing tool. The Google Maps and Mapbox APIs are quite robust but also can be expensive. 
 
@@ -142,7 +141,7 @@ folium_map
 
 We ended up with a simple map of MLB stadiums (the overlap of some teams is not ideal, but it’s cooler to have the team logos than basic dots in my opinion!).
 
-<iframe src="[https://m-r-ham.github.io/mitchymaps.github.io/projects/mlb-analysis/outputs/mlb_ballparks_map.html](https://github.com/m-r-ham/mitchymaps.github.io/blob/1fba5e31935db54a9c079aa46dfbd8ab44719eb2/projects/mlb-analysis/outputs/mlb_ballparks_map.html)" width="100%" height="600px"></iframe>
+<iframe src="https://raw.githubusercontent.com/m-r-ham/mitchymaps.github.io/main/projects/mlb-analysis/outputs/mlb_ballparks_map.html" width="100%" height="600px"></iframe>
 
 This is nice, but it doesn't tell us anything. Proximity analysis can help us understand the population's access to MLB stadiums.
 
