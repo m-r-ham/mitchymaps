@@ -138,7 +138,7 @@ folium_map
 
 We ended up with a simple map of MLB stadiums (the overlap of some teams is not ideal, but it’s cooler to have the team logos than basic dots in my opinion!).
 
-<iframe src="https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/mlb_ballparks_map.html" width="100%" height="600px"></iframe>
+<iframe src="https://m-r-ham.github.io/mitchymaps.github.io/projects/mlb-analysis/outputs/mlb_ballparks_map.html" width="100%" height="600px"></iframe>
 
 This is nice, but it doesn't tell us anything. Proximity analysis can help us understand the population's access to MLB stadiums.
 
@@ -289,7 +289,7 @@ This is super interesting, but not unexpected. There are many areas in the US wh
 
 ![Histogram of travel time distribution](https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/travel_time_distribution.png)
 
-We know that in rural areas, however, straight-line distances can be misleading. Given the geography of highway networks, accessibility to a trauma center is mediated through accessibility to that road network." Let's look at drive time in addition to distance to get a better sense of which Census tracts are "close" to MLB stadiums.
+We know that in many areas, however, straight-line distances can be misleading. Let's look at drive time in addition to distance to get a better sense of which Census tracts are "close" to MLB stadiums.
 
 ### Drive time analysis: Truist Park
 We can connect to Mapbox’s navigation services with the routingpy package, an interface to several hosted navigation APIs. This allows us to calculate drive time for our dataset. The Mapbox API has a meaningful free tier, but there are thousands of Census tracts and 30 MLB stadiums, so we would have spent $1,000+ on this analysis had we calculated drive time for every stadium. Therefore, I focused on Truist Park in Atlanta for the remaining analysis.
@@ -548,7 +548,7 @@ m
 
 The results are fascinating! Once we stop using straight-line distance calculations, we can start to see how road networks and other factors affect drive time to the stadiums. The isochrones are complex polygons and demonstrate that a relatively small portion of GA's population is within 60 minutes driving from Truist Park.
 
-<iframe src="https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/truist_park_isochrones.html" width="100%" height="600px"></iframe>
+<iframe src="https://m-r-ham.github.io/mitchymaps.github.io/projects/mlb-analysis/outputs/truist_park_isochrones.html" width="100%" height="600px"></iframe>
 
 ### Adding demographic data
 We can use pygris get_census to pull Census demographic data into this analysis of the areas around Truist Park. 
@@ -639,15 +639,108 @@ Unfortunately, I forgot to create a population _density_ variable before making 
 
 I used similar code to the above to pull in the Census tracts, MLB stadiums, and Census demographic data within 20 miles of each MLB stadium (for consistency). I mapped each area using a logarithmic scale to account for the dramatic differences in population within the tracts (e.g., Kansas City vs. New York City).
 
-![Population density around Yankee Stadium](https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/logarithmic_population_density_New_York_Yankees.png)
+<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+
+  <div style="flex: 1;">
+    <img src="https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/logarithmic_population_density_New_York_Yankees.png" alt="Population density around Yankee Stadium" style="width: 100%; height: auto;">
+    <p style="text-align: center;">Population density around Yankee Stadium</p>
+  </div>
+
+  <div style="flex: 1;">
+    <img src="https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/logarithmic_population_density_Kansas_City_Royals.png" alt="Population density around Kansas City Royals" style="width: 100%; height: auto;">
+    <p style="text-align: center;">Population density around Kauffman Stadium</p>
+  </div>
+
+</div>
+
+Yankee Stadium is squarely within NYC in a densely populated area of the Bronx. Kauffman Stadium is a good bit outside of Kansas City, which already has a much lower population than NYC. The population density near the stadiums therefore differs dramaticaly.
 
 ### Correlation between demographics and attendance
+My final question for this analysis was, "Is attendance correlated with population dynamics like density and household income?" To analyze this, I created a simple regression model.
 
-## Final results
+I started with team attendance. The top 5 teams last year by average attendance per game were: 
+
+1. Los Angeles Dodgers: 47,371 
+2. San Diego Padres: 40,390
+3. New York Yankees: 40,358
+4. St. Louis Cardinals: 40,013
+5. Atlanta Braves: 39,401
+
+Interestingly, the area around Busch Stadium in St. Louis has the 3rd lowest population density and 3rd lowest median income out of all 30 MLB teams. That didn't stop them from making it into the top 5 in attendance per game last year (even though they also sucked). There are obviously other factors at play, such as strength of the fandom and baseball culture in the city, ease of transportation and parking, cost, capacity, schedule, and many others.
+
+Even with this data in hand, I still wanted to see the results of the regression.
+
+<details>
+    <summary>Click to expand code</summary>
 
 ```python
-def my_function():
-    print("Hello, World!")
-```
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from sklearn.linear_model import LinearRegression
 
-Here is some inline code: `print("Hello, World!")`.
+# Ensure all data is numeric
+numeric_cols = ['population_density', 'avg_median_income', 'AttendancePerGame_2023']
+stadium_data_numeric = stadium_data[numeric_cols].apply(pd.to_numeric, errors='coerce')
+
+# Drop rows with NaN values
+stadium_data_numeric = stadium_data_numeric.dropna()
+
+# Calculate correlations
+correlations = stadium_data_numeric.corr()
+print("Correlations with Attendance:")
+print(correlations['AttendancePerGame_2023'])
+
+# Single Variable Linear Regression
+X_density = stadium_data_numeric[['population_density']]
+y = stadium_data_numeric['AttendancePerGame_2023']
+X_income = stadium_data_numeric[['avg_median_income']]
+
+model_density = sm.OLS(y, sm.add_constant(X_density)).fit()
+model_income = sm.OLS(y, sm.add_constant(X_income)).fit()
+
+print("\nLinear Regression Model: Population Density")
+print(model_density.summary())
+print("\nLinear Regression Model: Average Median Income")
+print(model_income.summary())
+
+# Multiple Regression Analysis
+X = stadium_data_numeric[['population_density', 'avg_median_income']]
+model = sm.OLS(y, sm.add_constant(X)).fit()
+
+print("\nMultiple Regression Model")
+print(model.summary())
+
+# Visualize relationships
+fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+sns.scatterplot(data=stadium_data_numeric, x='population_density', y='AttendancePerGame_2023', ax=axes[0])
+axes[0].set_xlabel('Population Density')
+axes[0].set_ylabel('Attendance Per Game (2023)')
+axes[0].set_title('Population Density vs Attendance')
+sns.regplot(data=stadium_data_numeric, x='population_density', y='AttendancePerGame_2023', ax=axes[0], scatter=False, color='red')
+
+sns.scatterplot(data=stadium_data_numeric, x='avg_median_income', y='AttendancePerGame_2023', ax=axes[1])
+axes[1].set_xlabel('Average Median Income')
+axes[1].set_ylabel('Attendance Per Game (2023)')
+axes[1].set_title('Income vs Attendance')
+sns.regplot(data=stadium_data_numeric, x='avg_median_income', y='AttendancePerGame_2023', ax=axes[1], scatter=False, color='red')
+
+plt.tight_layout()
+plt.savefig('mlb_attendance_correlations.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+# Print summary statistics
+print("\nSummary Statistics:")
+print(stadium_data_numeric.describe())
+```
+</details>
+
+The results? With this simple analysis, there was almost 0 correlation between household income and population density around stadiums with attendance. 
+
+![Plot of correlation between demographic factors and MLB attendance](https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/mlb_attendance_correlations copy.png)
+
+The R^2 value for both regressions was under 0.1, indicating very low correlation. As I mentioned, there are clearly many other factors influencing attendance. Maybe I'll create a more robust model another time!
+
+Thanks for following along with my first public analysis/post! I'll be exploring other interesting topics in the weeks and months to come. 
