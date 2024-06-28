@@ -79,11 +79,14 @@ print(f"Geocoded addresses saved to {output_csv_file_path}")
 ```
 </details>
 
-Usually, I use Nominatim for quick geocoding in python but I kept getting a 403 error code regardless of what I used for my parameters, so I switched to Photon for this analysis. There are many ways to geocode addresses, most of them free in small batches. My favorites are Nominatim and the [`Census Geocoder`](#https://www.census.gov/programs-surveys/geography/technical-documentation/complete-technical-documentation/census-geocoder.html) batch processing tool. The Google Maps and Mapbox APIs are quite robust but also can be expensive. 
+Usually, I use Nominatim for geocoding addresses in Python but I kept getting a 403 error code regardless of what I used for my parameters, so I switched to Photon for this analysis. There are many ways to geocode addresses, most of them free in small batches. My favorites are Nominatim through geopy and the [`Census Geocoder`](#https://www.census.gov/programs-surveys/geography/technical-documentation/complete-technical-documentation/census-geocoder.html) batch processing tool. The Google Maps and Mapbox APIs are quite robust but also can be expensive. 
 
-It's also important to note that the input data quality affects geocoding success and accuracy quite dramatically. The Google Maps API can handle geocoding from a place name input like 'Truist Park', but many geocoders require an address. You can achieve accurate results quite often with quality address inputs with Street, City, State, and ZIP included.
+It's also important to note that the input data quality affects geocoding success and accuracy quite dramatically. The Google Maps API can handle geocoding from a place name input like 'Truist Park', but many geocoders require an address. You can achieve accurate results quite often with quality address inputs including Street, City, State, and ZIP.
 
 Once the stadium addresses are geocoded, we can add move on to mapping. This involves importing a few libraries, including folium for the map and os & base64 to be able to use SVG images of team logos as the markers on the map.
+
+<details>
+    <summary>Click to expand code</summary>
 
 ```python
 import folium
@@ -130,18 +133,22 @@ df.apply(add_custom_marker, axis=1)
 
 # Show the map
 folium_map
-
 ```
+</details>
 
 We ended up with a simple map of MLB stadiums (the overlap of some teams is not ideal, but it’s cooler to have the team logos than basic dots in my opinion!).
 
-<iframe src="/projects/mlb-analysis/outputs/mlb_ballparks_map.html" width="100%" height="600px"></iframe>
+<iframe src="https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/mlb_ballparks_map.html" width="100%" height="600px"></iframe>
 
+This is nice, but it doesn't tell us anything. Proximity analysis can help us understand the population's access to MLB stadiums.
 
 ### Proximity analysis
 MLB stadiums are located in diverse areas of their cities, so I wanted to understand the areas that are near MLB stadiums. To do this, we had to have some locations to compare against the MLB stadiums. I used Census tracts as my geographic areas because they’re small and have a lot of available Census data attached to them. Census tracts are small geographic areas with 1,200-8,000 people. They're great for geospatial & demographic analysis because they're much more comparable to each other in terms of population size than other geographic areas like ZIP codes and counties.
 
 First, we pulled the census tracts in via pygris and used geopandas to load the MLB stadium data we gathered earlier.
+
+<details>
+    <summary>Click to expand code</summary>
 
 ```python
 import geopandas as gpd
@@ -180,12 +187,16 @@ stadiums_gdf.set_crs(epsg=4269, inplace=True)
 
 print("Census tracts and stadiums data loaded with CRS set.")
 ```
+</details>
 
 Then, we wanted to find out which MLB stadiums are _near_ each census tract. We don't want to search by state here because some Census tracts, and therefore people, are closest to an MLB stadium outside their state. For example, some Maryland residents are closer to Nationals Park in DC than they are to Camden Yards in Baltimore. To do this, we identified all MLB stadiums within 100 km of the census tracts. We use a sequence of common GIS operations with geopandas to accomplish this. Our steps include:
 
 - Combining the Census tracts into a single shape with the .dissolve() method;
 - Drawing a new shape that extends to 100km beyond the border of all tracts with the .buffer() method;
 - Using an inner spatial join to retain only the stadiums that fall within the 100km buffer shape (all of them).
+
+<details>
+    <summary>Click to expand code</summary>
 
 ```python
 # Create a buffer around the dissolved census tracts
@@ -199,8 +210,12 @@ stadiums_within_buffer = gpd.sjoin(stadiums_gdf, national_buffer, how="inner", o
 
 print("Buffer created and spatial join completed.")
 ```
+</details>
 
 After running this operation, we can draw a quick plot to show the relationships between Census tracts and MLB stadiums.
+
+<details>
+    <summary>Click to expand code</summary>
 
 ```python
 import matplotlib.pyplot as plt
@@ -218,22 +233,32 @@ ax.set_title('MLB Stadiums within Buffer of Dissolved US Census Tracts')
 ax.set_axis_off()
 plt.show()
 ```
+</details>
+
 The output looks like this, confirming that we have captured all MLB stadiums for future analysis.
 
-![Map of the Census tracts with MLB stadiums](projects/mlb-analysis/outputs/mlb_stadiums_within_buffer.png)
+![Map of the Census tracts with MLB stadiums](https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/mlb_stadiums_within_buffer.png)
 
 Now, we have to caclulate the distance from each Census tract to the nearest MLB stadium to get a proximity distribution. Census tracts are geographic areas (polygons), not points, so we have to first identify the "centroid" of each Census tract. We commonly use centroids to calculate distances and understand relationships between complex shapes and points in geospatial analysis. By using centroids, you can easily measure the distance between the center of a polygon and other points (e.g., comparing the distance between the center of a city boundary and specific locations like stores or schools). 
 
 We had to re-project the coordinates to a different Coordinate Reference System (CRS) to enable easy comparison.
 
+<details>
+    <summary>Click to expand code</summary>
+    
 ```python
 # Reproject to a projected CRS for accurate distance calculations
 projected_crs = 2163  # US National Atlas Equal Area
 all_census_tracts = all_census_tracts.to_crs(epsg=projected_crs)
 stadiums_gdf = stadiums_gdf.to_crs(epsg=projected_crs)
 ```
+</details>
+
 Then, we calculated the centroid of each Census tract, calculated the distance from each centroid to the stadiums to identify the nearest one, added the distance back to the census gdf, and, finally, mapped it!
 
+<details>
+    <summary>Click to expand code</summary>
+    
 ```python
 # Calculate centroids of census tracts
 tract_centroids = all_census_tracts.centroid
@@ -256,11 +281,13 @@ ax.set_title('Travel Distance (miles) to Nearest MLB Stadium')
 ax.set_axis_off()
 plt.show()
 ```
-![Map of travel distance to MLB stadiums](projects/mlb-analysis/outputs/travel_distance_to_stadiums.png)
+</details>
+
+![Map of travel distance to MLB stadiums](https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/travel_distance_to_stadiums.png)
 
 This is super interesting, but not unexpected. There are many areas in the US where people are quite far from an MLB stadium, especially across the great plains and parts of the western US (though this will change once Oakland moves to Sacramento and then Las Vegas). The average distance from a Census tract to an MLB stadium is 128 miles, but a simple histogram shows that most Census tracts are within 100 miles of a stadium.
 
-![Histogram of travel time distribution](projects/mlb-analysis/outputs/travel_time_distribution.png)
+![Histogram of travel time distribution](https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/travel_time_distribution.png)
 
 We know that in rural areas, however, straight-line distances can be misleading. Given the geography of highway networks, accessibility to a trauma center is mediated through accessibility to that road network." Let's look at drive time in addition to distance to get a better sense of which Census tracts are "close" to MLB stadiums.
 
@@ -268,6 +295,9 @@ We know that in rural areas, however, straight-line distances can be misleading.
 We can connect to Mapbox’s navigation services with the routingpy package, an interface to several hosted navigation APIs. This allows us to calculate drive time for our dataset. The Mapbox API has a meaningful free tier, but there are thousands of Census tracts and 30 MLB stadiums, so we would have spent $1,000+ on this analysis had we calculated drive time for every stadium. Therefore, I focused on Truist Park in Atlanta for the remaining analysis.
 
 We start with importing the necessary libraries and connecting to the Mapbox API via routingpy.
+
+<details>
+    <summary>Click to expand code</summary>
 
 ```python
 import geopandas as gpd
@@ -288,7 +318,12 @@ mb = MapboxOSRM(api_key=mapbox_key)
 max_requests_per_minute = 60  # For driving, walking, and cycling profiles
 max_requests_per_day = 100000  # Standard daily limit for free tier
 ```
+</details>
+
 Then, we followed the same steps as above to gather Census tracts, dissolve them into a single shape, and merge them with the stadium data. This time, however, we only collected Census data for GA (FIPS code '13'). After we have the data loaded and prepared, we can generate a list of coordinate pairs to feed to Mapbox. We ultimately calculated 2,300 'elements', the output of the [Mapbox Matrix API](#https://docs.mapbox.com/api/navigation/matrix/). This was almost 25% of our monthly free limit, so it's a good thing we focused on 1 state instead of all 50.
+
+<details>
+    <summary>Click to expand code</summary>
 
 ```python
 # Function to convert points to coordinates
@@ -345,7 +380,12 @@ for chunk in chunks:
 
 all_times = pd.concat(times_list, ignore_index=True)
 ```
+</details>
+
 Now we have the data we need on drive times to do some meaningful analysis and visualization. We start by calculating the minimum travel time in minutes to the nearest stadium (which will be Truist Park in all cases). Then, we plot the results! 
+
+<details>
+    <summary>Click to expand code</summary>
 
 ```python
 # Calculate minimum travel time (in minutes) to the nearest stadium
@@ -381,14 +421,19 @@ ax.set_ylim(miny, maxy)
 
 plt.show()
 ```
+</details>
+
 The map is not surprising at all. Areas far away from Truist Park are far in terms of distance and drive time. Truist Park is located in Metro Atlanta, so the Atlanta area has the easiest access to the stadium. There are no stadiums in north Florida or in TN/SC, so people in N/S Georgia do not have access to another nearby stadium.
 
-![Map of GA Census tract travel times to Truist Park](projects/mlb-analysis/outputs/travel_time_to_truist.png)
+![Map of GA Census tract travel times to Truist Park](https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/travel_time_to_truist.png)
 
 ### Travel time isochrones
 Isochrones are a really interesting way to show layers of proximity and travel time from a given point. An isochrone is a line or area on a map that represents all points that can be reached within a certain time or distance from a given location. Isochrones are commonly used in transportation planning, logistics, and urban planning to visualize accessibility and travel times.
 
 We can use isochrones to explore the immediate areas around Truist Park in more detail. We'll use the Mapbox API via routingpy again to generate an isochrone. We'll reload the stadiums data into a new dataframe, then call the Mapbox API to generate the isochrones, and map the results.
+
+<details>
+    <summary>Click to expand code</summary>
 
 ```python
 import geopandas as gpd
@@ -459,8 +504,12 @@ def mb_isochrone(gdf, time=[5, 10, 15], profile="driving"):
 
     return isochrone_gdf
 ```
+</details>
 
 We'll generate an isochrone with layers for drive time of 15, 30, 45, and 60 minutes and produce the map with folium.
+
+<details>
+    <summary>Click to expand code</summary>
 
 ```python
 # Generate isochrones for Truist Park
@@ -495,12 +544,17 @@ for idx, row in truist_park_gdf.iterrows():
 # Display the map
 m
 ```
+</details>
+
 The results are fascinating! Once we stop using straight-line distance calculations, we can start to see how road networks and other factors affect drive time to the stadiums. The isochrones are complex polygons and demonstrate that a relatively small portion of GA's population is within 60 minutes driving from Truist Park.
 
-<iframe src="projects/mlb-analysis/outputs/truist_park_isochrones.html" width="100%" height="600px"></iframe>
+<iframe src="https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/truist_park_isochrones.html" width="100%" height="600px"></iframe>
 
 ### Adding demographic data
 We can use pygris get_census to pull Census demographic data into this analysis of the areas around Truist Park. 
+
+<details>
+    <summary>Click to expand code</summary>
 
 ```python
 from pygris.data import get_census
@@ -536,14 +590,38 @@ census_data = get_census(
 # Convert to DataFrame
 census_df = pd.DataFrame(census_data)
 ```
+</details>
+
 This will allow us to see how proximity and population metrics like density, income, and race are related (or not). We'll analyze these demographic dimensions within the 60-minute isochrone around Truist Park for easy comparison. If you know Atlanta, the following maps will not surprise you.
 
-![Population within 60 mins of Truist Park](projects/mlb-analysis/outputs/population_density-3.png)
-![Median household income within 60 mins of Truist Park](projects/mlb-analysis/outputs/median_household_income-3.png)
-![Black population within 60 mins of Truist Park](projects/mlb-analysis/outputs/black_population-3.png)
-![White population within 60 mins of Truist Park](projects/mlb-analysis/outputs/white_population-3.png)
+<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+
+  <div style="flex: 1 1 calc(50% - 10px);">
+    <img src="https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/population_density-3.png" alt="Population within 60 mins of Truist Park" style="width: 100%; height: auto;">
+    <p>Population within 60 mins of Truist Park</p>
+  </div>
+
+  <div style="flex: 1 1 calc(50% - 10px);">
+    <img src="https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/median_household_income-3.png" alt="Median household income within 60 mins of Truist Park" style="width: 100%; height: auto;">
+    <p>Median household income within 60 mins of Truist Park</p>
+  </div>
+
+  <div style="flex: 1 1 calc(50% - 10px);">
+    <img src="https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/black_population-3.png" alt="Black population within 60 mins of Truist Park" style="width: 100%; height: auto;">
+    <p>Black population within 60 mins of Truist Park</p>
+  </div>
+
+  <div style="flex: 1 1 calc(50% - 10px);">
+    <img src="https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/white_population-3.png" alt="White population within 60 mins of Truist Park" style="width: 100%; height: auto;">
+    <p>White population within 60 mins of Truist Park</p>
+  </div>
+
+</div>
 
 Here's how I created these maps using matplotlib.pyplot. 
+
+<details>
+    <summary>Click to expand code</summary>
 
 ```python
 # Plot Population Density
@@ -554,8 +632,10 @@ plt.title('Population Density within 60-min Isochrone of Truist Park')
 plt.legend(loc='upper right')
 plt.show()
 ```
+</details>
+
 ### Demographics and attendance
-Unfortunately, I forgot to create a population _density_ variable before making those maps of Truist Park... so we're left with pure population numbers. So I figured why not analyze population density around each MLB ballpark?
+Unfortunately, I forgot to create a population _density_ variable before making those maps of Truist Park... so we're left with pure population numbers in the "density" visualization above. So I figured why not analyze population density around each MLB ballpark?
 
 I used similar code to the above to pull in the Census tracts, MLB stadiums, and Census demographic data within 20 miles of each MLB stadium (for consistency). I mapped each area using a logarithmic scale to account for the dramatic differences in population within the tracts (e.g., Kansas City vs. New York City).
 
