@@ -18,12 +18,15 @@ I used python exclusively for this analysis. There are many great geospatial and
 I got inspiration from https://walker-data.com/posts for some of this analysis.
 
 ## Analysis
-Distance and proximity analyses are common in spatial data science. It's often important to understand how something is to something else. Proximity analysis can give a business clues about where to place a new location or help a government understand a population's access to critical resources like hospitals. For this project, I started by exploring how close/far people are from MLB stadiums.
+Distance and proximity analyses are common in spatial data science. It's often important to understand how close something is to something else. Proximity analysis can give a business clues about where to place a new location or help a government understand a population's access to critical resources like hospitals. For this project, I started by exploring how close/far people are from MLB stadiums.
 
 ### Mapping MLB stadiums
 First, I copied MLB stadium names & addresses from [`MLB`](#https://www.mlb.com/team) and stadium capacity from [`Wikipedia`](#https://en.wikipedia.org/wiki/List_of_current_Major_League_Baseball_stadiums) into a csv file. I thought about scraping this data, but it was easier/quicker to collect the data manually.
 
 Then, I geocoded the MLB ballparks using the Photon geocoder within geopy. Geocoding is the process of converting addresses, place names, or other location-based data into geographic coordinates (latitude and longitude). Geocoding is an important part of geospatial analytics for many reasons but particularly for mapping and integrating with other geographic data.
+
+<details>
+    <summary>Click to expand code</summary>
 
 ```python
 import pandas as pd
@@ -74,6 +77,7 @@ df.to_csv(output_csv_file_path, index=False)
 
 print(f"Geocoded addresses saved to {output_csv_file_path}")
 ```
+</details>
 
 Usually, I use Nominatim for quick geocoding in python but I kept getting a 403 error code regardless of what I used for my parameters, so I switched to Photon for this analysis. There are many ways to geocode addresses, most of them free in small batches. My favorites are Nominatim and the [`Census Geocoder`](#https://www.census.gov/programs-surveys/geography/technical-documentation/complete-technical-documentation/census-geocoder.html) batch processing tool. The Google Maps and Mapbox APIs are quite robust but also can be expensive. 
 
