@@ -643,15 +643,15 @@ Unfortunately, I forgot to create a population _density_ variable before making 
 
 I used similar code to the above to pull in the Census tracts, MLB stadiums, and Census demographic data within 20 miles of each MLB stadium (for consistency). I mapped each area using a logarithmic scale to account for the dramatic differences in population within the tracts (e.g., Kansas City vs. New York City).
 
-<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between;">
 
-  <div style="flex: 1;">
-    <img src="https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/logarithmic_population_density_New_York_Yankees.png" alt="Population density around Yankee Stadium" style="width: 100%; height: auto;">
+  <div style="flex: 1; margin-right: 10px;">
+    <img src="https://raw.githubusercontent.com/m-r-ham/mitchymaps.github.io/main/projects/mlb-analysis/outputs/logarithmic_population_density_New_York_Yankees.png" alt="Population density around Yankee Stadium" style="width: 100%; height: auto;">
     <p style="text-align: center;">Population density around Yankee Stadium</p>
   </div>
 
-  <div style="flex: 1;">
-    <img src="https://github.com/m-r-ham/mitchymaps.github.io/blob/657ace14fa61eb238d1a5bd3a9c59915aac5b7f8/projects/mlb-analysis/outputs/logarithmic_population_density_Kansas_City_Royals.png" alt="Population density around Kansas City Royals" style="width: 100%; height: auto;">
+  <div style="flex: 1; margin-left: 10px;">
+    <img src="https://raw.githubusercontent.com/m-r-ham/mitchymaps.github.io/main/projects/mlb-analysis/outputs/logarithmic_population_density_Kansas_City_Royals.png" alt="Population density around Kansas City Royals" style="width: 100%; height: auto;">
     <p style="text-align: center;">Population density around Kauffman Stadium</p>
   </div>
 
