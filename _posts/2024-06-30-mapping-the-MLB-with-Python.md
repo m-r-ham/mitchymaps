@@ -1,7 +1,4 @@
-layout: post
-title: "Mapping the MLB with Python"
-date: 2024-06-30
-categories: projects
+# Mapping the MLB with Python
 
 ## Introduction
 
